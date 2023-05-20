@@ -1,0 +1,26 @@
+<html>
+<title> Sessions demo </title>
+<body bgcolor="lightblue">
+<h1>Welcome New User!</h1>
+<br>
+<form action="/login" method="post">
+  User name:<br>
+  <input type="text" name="username" value="">
+  <br>
+  Password:<br>
+  <input type="password" name="password" value="">
+  <br><br>
+  <input type="submit" value="Submit">
+</form> 
+</form>
+<% if (typeof error !== 'undefined') { %>
+  <p><%= error %></p>
+<% } %>
+<br>
+<p>No Account? Click here to Register!</p>
+<a href="/register">
+  <button>Register</button>
+</a>
+
+</body>
+</html>

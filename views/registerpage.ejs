@@ -1,0 +1,24 @@
+<html>
+<title> Register </title>
+<body bgcolor="orange">
+<h1>Register</h1>
+<% if (error && !passwordError) { %>
+    <p>Error: <%= error %></p>
+    <% } else if (error && passwordError) { %>
+    <p><%= error %></p>
+<% } %>
+<form action="/register" method="post">
+  User name:<br>
+  <input type="text" name="username" value="">
+  <br>
+  Password:<br>
+  <input type="password" name="password" value="">
+  <br> 
+  <p>Password must be at least 8 characters long</p>
+  <p>Password must include: 1 uppercase, 1 lowercase, 2 digits, 1 special symbol !@#$%^&*[]{}</p> 
+  <input type="submit" value="Submit">
+</form> 
+</form>
+
+</body>
+</html>
