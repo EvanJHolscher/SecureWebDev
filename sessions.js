@@ -31,12 +31,20 @@ const passwordValidator = require('password-validator');
 // Encryption/Decryption for passwords
 const bcrypt = require('bcrypt');	
 
+const https = require('https');
+
+const fs = require('fs');
+
 const saltRounds = 10;
 
 // Set the view engine
 app.set('view engine', 'ejs');
 
-
+// Setup https
+const options = {
+	key: fs.readFileSync('private.key'),
+	cert: fs.readFileSync('securecert.crt')
+};
 
 // Connect to the database
 const  mysqlConn = mysql.createConnection({
@@ -47,7 +55,6 @@ const  mysqlConn = mysql.createConnection({
 	multipleStatements: true
 	
 });
-
 
 // Needed to parse the request body
 // Note that in version 4 of express, express.bodyParser() was
@@ -76,6 +83,16 @@ app.use(sessions({
   }
 
 })); 
+
+
+app.get('/error',(req,res)=>{
+	throw new Error('Something went wrong!');
+});
+
+app.use((err,req,res,next)=>{
+	console.log(err.stack);
+	res.status(500).send('Internal Server Error');
+});
 
 // The default page
 // @param req - the request
@@ -121,15 +138,14 @@ app.get('/dashboard', function(req, res){
 // @param res - the response
 app.post('/login', function(req, res) {
 	// Get username/password from form
-	const username = req.body.username;
+	const username = xss(req.body.username).toString().toLowerCase();
 	const password = req.body.password;
   
 	// Retrieve the salt from the database for the given username
 	let selectQuery = "USE users; SELECT salt, password FROM appusers WHERE username = ?";
 	mysqlConn.query(selectQuery, [username], function(err, salt) {
 	  if (err) {
-		console.error(err);
-		return res.render('loginpage', { error: "Internal Server Error" });
+		throw new Error("Query selecting salt");
 	  }
   
 	  // Check if the user exists
@@ -144,8 +160,7 @@ app.post('/login', function(req, res) {
 	  // Hash the provided password with the retrieved salt
 	  bcrypt.hash(password, storedSalt, function(err, hash) {
 		if (err) {
-		  console.error(err);
-		  return res.render('loginpage', { error: "Internal Server Error" });
+		  throw new Error("Hashing given password and retrieved salt");
 		}
   
 		// Compare the generated hash with the stored hash
@@ -153,14 +168,15 @@ app.post('/login', function(req, res) {
 		console.log(storedHash);
 		bcrypt.compare(password,storedHash, async function(err, result) {
 		  if (err) {
-			console.error(err);
-			return res.render('loginpage', { error: "Internal Server Error" });
+			throw new Error("Comparing stored hash with password");
 		  }
   
 		  // Check if the passwords match
 		  if (result) {
 			console.log("Passwords match!");
 			let updateQuery = "UPDATE appusers SET session = ? WHERE username = ?";
+
+			// Chat GPT suggested wrapping this in a promise due to some errors I was receiving.
 			await new Promise((resolve, reject) => {
 				mysqlConn.query(updateQuery, [req.session.id, username], function(err, result) {
 					if (err) {
@@ -171,11 +187,13 @@ app.post('/login', function(req, res) {
 					}
 				});
 			});
-			
+				
 		  } else {
+			// Passwords don't match, show generic message
 			console.log("Passwords do NOT match!");
 			return res.render('loginpage', {error: "Incorrect Information"});
 		  }
+		  // If signed in, redirect to dashboard
 		  req.session.username = username;
 		  return res.redirect('/dashboard');
 		});
@@ -259,7 +277,7 @@ app.get('/logout', function(req, res){
 	let username = req.session.username
 	let updateQuery = "USE USERS; UPDATE appusers SET session= 'NOT LOGGED IN' WHERE username= ?";
 	mysqlConn.query(updateQuery, [username], function(err, result){
-		if (err) throw err;
+		if (err) throw new Error("Gathering username query")
 		console.log("Session ID removed from database");
 
 		// Destroy session and redirect to '/' which will render loginpage
@@ -272,6 +290,6 @@ app.get('/logout', function(req, res){
 	});
 });
 
-app.listen(3000);
+const httpsServer = https.createServer(options, app).listen(3000);
 
 
