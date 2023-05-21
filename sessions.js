@@ -78,8 +78,8 @@ app.use(sessions({
   saveUninitialized: true,
   cookie:{
 	httpOnly: true,
-	maxAge: 30 * 60 * 1000,
-	secure: false, ////////////////////////////////////////////// CHANGE TO TRUE for https
+	maxAge: 60 * 1000,
+	secure: true,
   }
 
 })); 
@@ -220,13 +220,19 @@ app.post('/register', function(req, res){
 	let userName = xss(req.body.username).toString().toLowerCase();
 	let password = req.body.password;
 
+	// Check for max lenght recommendation of 64 characters for username/password
+	if (userName.length > 64){
+		return res.render('registerpage', {error: 'Maximum username length of 64 characters', passwordError: false});
+	}
+	if (password.length > 64){
+		return res.render('registerpage', {error: 'Maximum password length of 64 characters', passwordError: true});
+	}
 
 	// Validate input data
 	let checkQuery = "USE USERS; select * from appusers where username = ?";
 	mysqlConn.query(checkQuery, [userName], function(err, results){
 		if (err){
-			console.error(err);
-			return res.render('registerpage', {error: "Internal Server Error"});
+			throw new Error("Gathering username query")
 		}
 		console.log(results.length)
 		// Check password strength
@@ -253,8 +259,7 @@ app.post('/register', function(req, res){
 				let insertQuery = "USE USERS; INSERT INTO appusers (username, password, session, salt) VALUES(?, ?, 'NOT LOGGED IN', ?)";
 				mysqlConn.query(insertQuery, [userName, hash, salt], function(err, result){
 					if (err){
-						console.error(err);
-						return res.render('registerpage', {error: "Internal Server Error"});
+						throw new Error("Inserting new user query");
 					}
 					else{
 						console.log("New user " + userName + " inserted into database");

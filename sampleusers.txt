@@ -1,0 +1,45 @@
+Username: SecureUser1
+Password: P@ssw0rd!12
+
+Username: IronShield
+Password: Str0ngP@ss!21
+
+XSS RESISTANT
+Username: <script>alert(1)</script>
+Password: 3nCrypt!on#3
+
+SQL INJECTION RESISTANT
+Username: a' OR 1=1; SELECT * FROM appusers
+Password: 3nCrypt!on#3 
+
+--NOT MEETING PASSWORD REQUIREMENTS (1 upper case)--
+Username: CyberDefender
+Password: 3ncrypt!on#3
+--FIX--
+Password: 3nCrypt!on#3
+
+Username: SafeGuardian
+Password: P@55phr@se$4
+
+Username: SecureNetizen
+Password: Pr0t3ct!0n#5
+
+Username: SentinelGuard
+Password: $tr0ngP@55!6
+
+Username: ShieldMaster
+Password: D3f3nd!nGth3W3b#7
+
+Username: SecureSentry
+Password: P@ssC0d3!8
+
+Username: CyberWarrior
+Password: W@rriorP@ss!91
+
+Username: FortifiedUser
+Password: R0bustP@55w0rd#10
+
+
+
+SAMPLE PASSWORD GREATER THAN 64: EXPECTED OUTPUT --> PASSOWORD TOO LONG
+WfVm}%Tj'-Q8DBXuq~*,zyjJrk3Te`cz-u7W4P7jShJqU_$tFgNW3efCTEQWfC=QvD/APQw{'[hWUnF*E<9G"#<2~%:dAq!r29"QZH'FVv6_?kt.pv,9KU+x8sYYZ)WE
